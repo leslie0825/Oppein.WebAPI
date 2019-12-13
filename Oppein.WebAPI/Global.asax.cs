@@ -19,5 +19,10 @@ namespace Oppein.WebAPI
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
         }
+
+        protected void Application_BeginRequest(object sender, EventArgs e)
+        {
+            if (Context.Request.FilePath == "/") Context.RewritePath("/swagger");//默认跳转到此路径
+        }
     }
 }
