@@ -9,16 +9,21 @@ namespace Oppein.WebAPI.Controllers
 {
     public class ValuesController : ApiController
     {
-        // GET api/values
+        //GET api/values
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };
         }
 
+        public List<string> GetLst(int id,string name)
+        {
+            return new List<string> { "aa", "bb" };
+        }
+
         // GET api/values/5
         public string Get(int id)
         {
-            return "value";
+            return "value"+id;
         }
 
         // POST api/values

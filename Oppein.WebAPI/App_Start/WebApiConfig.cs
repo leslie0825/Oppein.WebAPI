@@ -14,11 +14,18 @@ namespace Oppein.WebAPI
             // Web API 路由
             config.MapHttpAttributeRoutes();
 
+
             config.Routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional }
-            );
+               name: "DefaultApi",
+               routeTemplate: "api/{controller}/{id}",
+               defaults: new { id = RouteParameter.Optional }
+           );
+
+            //config.Routes.MapHttpRoute(
+            //    name: "DefaultApi",
+            //    routeTemplate: "api22/{controller}/{action}/{id}/{name}",
+            //    defaults: new { id = RouteParameter.Optional,name=RouteParameter.Optional }
+            //);
         }
     }
 }
