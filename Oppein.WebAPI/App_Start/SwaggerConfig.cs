@@ -1,8 +1,14 @@
+ï»¿using System;
+using System.Linq;
+using System.Web;
 using System.Web.Http;
-using WebActivatorEx;
+using System.Web.Http.Description;
+using System.Web.Http.Routing.Constraints;
+using System.Collections.Generic;
+
 using Oppein.WebAPI;
-using Swashbuckle.Application;
-using System;
+using Swagger.Net.Application;
+using Swagger.Net;
 
 [assembly: PreApplicationStartMethod(typeof(SwaggerConfig), "Register")]
 
@@ -17,32 +23,100 @@ namespace Oppein.WebAPI
             GlobalConfiguration.Configuration
                 .EnableSwagger(c =>
                     {
-                        c.SingleApiVersion("v1", "MSCS-I am Title")
-                           .Description("MSCS-I am Description")
-                           .License(y => y.Name("By OppeinÖÆ×÷"));
-
-                        var dir = GetXmlCommentsPath();
-                        c.IncludeXmlComments(dir);
-                        //c.IgnoreObsoleteActions();
+                        //c.SingleApiVersion("v1", "æ¬§æ´¾");
+                        //c.AccessControlAllowOrigin("*");
+                        //c.IncludeAllXmlComments(thisAssembly, AppDomain.CurrentDomain.BaseDirectory);
+                        //c.IgnoreIsSpecifiedMembers();
                         //c.DescribeAllEnumsAsStrings(camelCase: false);
 
+                        c.SingleApiVersion("v1", "äº§å“ååŒå¹³å°æ¥å£")
+                        .Description("äº§å“ååŒå¹³å°æ¥å£")
+                        .License(y => y.Name("By Leslie"));
 
+                        c.AccessControlAllowOrigin("*");
+                        c.IncludeAllXmlComments(thisAssembly, AppDomain.CurrentDomain.BaseDirectory);
+                        c.IgnoreIsSpecifiedMembers();
+
+                        c.IgnoreObsoleteActions();
+                        c.DescribeAllEnumsAsStrings(camelCase: false);
                     })
                 .EnableSwaggerUi(c =>
                     {
-                        c.DocumentTitle("MSCS PlatForm");
+                        //c.ShowExtensions(true);
+                        //c.SetValidatorUrl("https://online.swagger.io/validator");
+                        //c.UImaxDisplayedTags(100);
+                        //c.UIfilter("''");
 
-                        c.InjectJavaScript(System.Reflection.Assembly.GetExecutingAssembly(), "Oppein.WebAPI.swagger.js");  //ÓÃ»§ºº»¯Swagger½çÃæÉÏµÄÓ¢ÎÄ£¨ÀıÈç£ºÏìÓ¦Àà (×´Ì¬ 200)µÈ£©
+                        c.DocumentTitle("äº§å“ååŒå¹³å°æ¥å£");
+                        c.ShowExtensions(true);
+
+                        c.InjectJavaScript(System.Reflection.Assembly.GetExecutingAssembly(), "Oppein.WebAPI.swagger.js");  //ç”¨æˆ·æ±‰åŒ–Swaggerç•Œé¢ä¸Šçš„è‹±æ–‡ï¼ˆä¾‹å¦‚ï¼šå“åº”ç±» (çŠ¶æ€ 200)ç­‰ï¼‰
                     });
         }
 
-        /// <summary>
-        /// »ñÈ¡xmlÂ·¾¶
-        /// </summary>
-        /// <returns></returns>
-        protected static string GetXmlCommentsPath()
+        public static bool ResolveVersionSupportByRouteConstraint(ApiDescription apiDesc, string targetApiVersion)
         {
-            return System.String.Format(@"{0}\bin\Oppein.WebAPI.XML", System.AppDomain.CurrentDomain.BaseDirectory);
+            return (apiDesc.Route.RouteTemplate.ToLower().Contains(targetApiVersion.ToLower()));
+        }
+
+        private class ApplyDocumentVendorExtensions : IDocumentFilter
+        {
+            public void Apply(SwaggerDocument swaggerDoc, SchemaRegistry schemaRegistry, IApiExplorer apiExplorer)
+            {
+                // Include the given data type in the final SwaggerDocument
+                //
+                //schemaRegistry.GetOrRegister(typeof(ExtraType));
+            }
+        }
+
+        public class AssignOAuth2SecurityRequirements : IOperationFilter
+        {
+            public void Apply(Operation operation, SchemaRegistry schemaRegistry, ApiDescription apiDescription)
+            {
+                // Correspond each "Authorize" role to an oauth2 scope
+                var scopes = apiDescription.ActionDescriptor.GetFilterPipeline()
+                    .Select(filterInfo => filterInfo.Instance)
+                    .OfType<AuthorizeAttribute>()
+                    .SelectMany(attr => attr.Roles.Split(','))
+                    .Distinct();
+
+                if (scopes.Any())
+                {
+                    if (operation.security == null)
+                        operation.security = new List<IDictionary<string, IEnumerable<string>>>();
+
+                    var oAuthRequirements = new Dictionary<string, IEnumerable<string>>
+                    {
+                        { "oauth2", scopes }
+                    };
+
+                    operation.security.Add(oAuthRequirements);
+                }
+            }
+        }
+
+        private class ApplySchemaVendorExtensions : ISchemaFilter
+        {
+            public void Apply(Schema schema, SchemaRegistry schemaRegistry, Type type)
+            {
+                // Modify the example values in the final SwaggerDocument
+                //
+                if (schema.properties != null)
+                {
+                    foreach (var p in schema.properties)
+                    {
+                        switch (p.Value.format)
+                        {
+                            case "int32":
+                                p.Value.example = 123;
+                                break;
+                            case "double":
+                                p.Value.example = 9858.216;
+                                break;
+                        }
+                    }
+                }
+            }
         }
     }
 }

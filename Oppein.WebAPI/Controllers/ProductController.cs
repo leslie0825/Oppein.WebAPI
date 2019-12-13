@@ -9,6 +9,10 @@ using System.Web.Http;
 namespace Oppein.WebAPI.Controllers
 {
     //[RoutePrefix("apiD/productsT")]
+
+     /// <summary>
+     /// 产品相关控制器
+     /// </summary>
     public class ProductController : ApiController
     {
 
